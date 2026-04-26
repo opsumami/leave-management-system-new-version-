@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Approvals – Leave Management</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">Leave<span>MS</span></div>
+  <nav>
+    <a href="index.html"><span class="icon">📊</span> Dashboard</a>
+    <a href="apply-leave.html"><span class="icon">📝</span> Apply Leave</a>
+    <a href="leave-history.html"><span class="icon">📋</span> Leave History</a>
+    <a href="approval.html" class="active"><span class="icon">✅</span> Approvals</a>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="page-header">
+    <h1>Approval Panel</h1>
+    <p>Review and process pending leave requests</p>
+  </div>
+
+  <!-- SUMMARY STRIP -->
+  <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 28px;">
+    <div class="stat-card yellow">
+      <div class="label">Pending</div>
+      <div class="value" id="pendingCount" style="font-size:1.8rem;">—</div>
+      <div class="sub">Awaiting action</div>
+    </div>
+    <div class="stat-card green">
+      <div class="label">Approved Today</div>
+      <div class="value" id="approvedCount" style="font-size:1.8rem;">0</div>
+      <div class="sub">This session</div>
+    </div>
+    <div class="stat-card" style="--c:var(--danger);">
+      <div class="label">Rejected Today</div>
+      <div class="value" id="rejectedCount" style="font-size:1.8rem;">0</div>
+      <div class="sub">This session</div>
+    </div>
+  </div>
+
+  <!-- PENDING REQUESTS -->
+  <div class="card">
+    <div class="card-title">⏳ Pending Leave Requests</div>
+    <div id="pendingList"></div>
+  </div>
+
+  <!-- PROCESSED REQUESTS -->
+  <div class="card" id="processedCard" style="display:none;">
+    <div class="card-title">✅ Processed This Session</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Employee</th><th>Type</th><th>Dates</th><th>Decision</th></tr>
+        </thead>
+        <tbody id="processedBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let pending = [
+    { id: 1, name: 'Sara Khan',     empId: 'EMP-204', dept: 'HR',          type: 'Sick',   from: '2025-04-23', to: '2025-04-24', reason: 'High fever and doctor recommendation for rest.' },
+    { id: 2, name: 'Usman Raza',    empId: 'EMP-317', dept: 'Finance',     type: 'Annual', from: '2025-04-25', to: '2025-05-02', reason: 'Family trip planned months in advance.' },
+    { id: 3, name: 'Zara Malik',    empId: 'EMP-155', dept: 'Operations',  type: 'Annual', from: '2025-05-01', to: '2025-05-10', reason: 'Wedding ceremony in home city.' },
+    { id: 4, name: 'Faisal Sheikh', empId: 'EMP-677', dept: 'Engineering', type: 'Annual', from: '2025-06-01', to: '2025-06-14', reason: 'Travelling abroad for personal reasons.' },
+  ];
+
+  let sessionApproved = 0, sessionRejected = 0;
+  const processed = [];
+
+  function formatDate(d) {
+    return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
+  }
+
+  function daysBetween(a, b) {
+    return Math.max(1, Math.round((new Date(b) - new Date(a)) / (1000*60*60*24)) + 1);
+  }
+
+  function renderPending() {
+    const list = document.getElementById('pendingList');
+    document.getElementById('pendingCount').textContent = pending.length;
+
+    if (pending.length === 0) {
+      list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">
+        <div style="font-size:2.5rem;margin-bottom:12px">🎉</div>
+        <div style="font-family:var(--heading);font-weight:700;">All caught up!</div>
+        <div style="font-size:0.85rem;margin-top:6px">No pending requests to review.</div>
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = '';
+    pending.forEach(req => {
+      const card = document.createElement('div');
+      card.id = `req-${req.id}`;
+      card.style.cssText = `border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; transition: all 0.3s;`;
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+          <div>
+            <div style="font-family:var(--heading);font-weight:700;font-size:1rem;">${req.name}
+              <span style="color:var(--muted);font-size:0.78rem;font-weight:400;margin-left:8px;">${req.empId}</span>
+            </div>
+            <div style="color:var(--muted);font-size:0.82rem;margin-top:4px;">${req.dept}</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <span class="badge badge-pending">Pending</span>
+            <span style="font-size:0.82rem;color:var(--muted);">${daysBetween(req.from, req.to)} day(s)</span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:24px;margin:14px 0;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600;">Leave Type</div>
+            <div style="font-size:0.9rem;margin-top:3px;">${req.type}</div>
+          </div>
+          <div>
+            <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600;">From</div>
+            <div style="font-size:0.9rem;margin-top:3px;">${formatDate(req.from)}</div>
+          </div>
+          <div>
+            <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600;">To</div>
+            <div style="font-size:0.9rem;margin-top:3px;">${formatDate(req.to)}</div>
+          </div>
+        </div>
+
+        <div style="background:var(--surface2);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:0.85rem;color:var(--muted);">
+          <strong style="color:var(--text);">Reason:</strong> ${req.reason}
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-success" onclick="decide(${req.id}, 'Approved')">✅ Approve</button>
+          <button class="btn btn-danger" onclick="decide(${req.id}, 'Rejected')">✖ Reject</button>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  function decide(id, decision) {
+    const req = pending.find(r => r.id === id);
+    if (!req) return;
+
+    // Animate out
+    const card = document.getElementById(`req-${id}`);
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(30px)';
+
+    setTimeout(() => {
+      pending = pending.filter(r => r.id !== id);
+      processed.push({ ...req, decision });
+
+      if (decision === 'Approved') sessionApproved++;
+      else sessionRejected++;
+
+      document.getElementById('approvedCount').textContent = sessionApproved;
+      document.getElementById('rejectedCount').textContent = sessionRejected;
+
+      renderPending();
+      renderProcessed();
+      showToast(decision === 'Approved'
+        ? `✅ Leave approved for ${req.name}`
+        : `✖ Leave rejected for ${req.name}`
+      , decision === 'Approved');
+    }, 300);
+  }
+
+  function renderProcessed() {
+    if (processed.length === 0) return;
+    document.getElementById('processedCard').style.display = 'block';
+    const tbody = document.getElementById('processedBody');
+    tbody.innerHTML = '';
+    processed.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.name} <span style="color:var(--muted);font-size:0.8rem;">${r.empId}</span></td>
+        <td>${r.type}</td>
+        <td>${formatDate(r.from)} – ${formatDate(r.to)}</td>
+        <td><span class="badge ${r.decision === 'Approved' ? 'badge-approved' : 'badge-rejected'}">${r.decision}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function showToast(msg, success = true) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.background = success ? 'var(--success)' : 'var(--danger)';
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+  }
+
+  renderPending();
+</script>
+
+</body>
+</html>

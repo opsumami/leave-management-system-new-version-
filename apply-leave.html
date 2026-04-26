@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Apply Leave – Leave Management</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">Leave<span>MS</span></div>
+  <nav>
+    <a href="index.html"><span class="icon">📊</span> Dashboard</a>
+    <a href="apply-leave.html" class="active"><span class="icon">📝</span> Apply Leave</a>
+    <a href="leave-history.html"><span class="icon">📋</span> Leave History</a>
+    <a href="approval.html"><span class="icon">✅</span> Approvals</a>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="page-header">
+    <h1>Apply for Leave</h1>
+    <p>Fill in the details below to submit your leave request</p>
+  </div>
+
+  <div class="card" style="max-width: 760px;">
+    <div class="card-title">📝 Leave Application Form</div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Employee ID</label>
+        <input type="text" id="empId" placeholder="e.g. EMP-1042" />
+      </div>
+
+      <div class="form-group">
+        <label>Employee Name</label>
+        <input type="text" id="empName" placeholder="Full name" />
+      </div>
+
+      <div class="form-group">
+        <label>Department</label>
+        <select id="dept">
+          <option value="">Select department</option>
+          <option>Engineering</option>
+          <option>Human Resources</option>
+          <option>Finance</option>
+          <option>Marketing</option>
+          <option>Operations</option>
+          <option>Sales</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Leave Type</label>
+        <select id="leaveType">
+          <option value="">Select type</option>
+          <option>Casual</option>
+          <option>Sick</option>
+          <option>Annual</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>From Date</label>
+        <input type="date" id="fromDate" />
+      </div>
+
+      <div class="form-group">
+        <label>To Date</label>
+        <input type="date" id="toDate" />
+      </div>
+
+      <div class="form-group span2">
+        <label>Reason</label>
+        <textarea id="reason" placeholder="Briefly explain the reason for your leave..."></textarea>
+      </div>
+
+    </div>
+
+    <div class="btn-row" style="margin-top: 24px;">
+      <button class="btn btn-primary" onclick="submitLeave()">🚀 Submit Application</button>
+      <button class="btn btn-ghost" onclick="resetForm()">✖ Clear Form</button>
+    </div>
+  </div>
+
+  <!-- LEAVE BALANCE CARD -->
+  <div class="card" style="max-width: 760px;">
+    <div class="card-title">📊 Your Leave Balance</div>
+    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="stat-card blue">
+        <div class="label">Casual</div>
+        <div class="value" style="font-size:1.8rem;">8</div>
+        <div class="sub">days remaining</div>
+      </div>
+      <div class="stat-card cyan">
+        <div class="label">Sick</div>
+        <div class="value" style="font-size:1.8rem;">6</div>
+        <div class="sub">days remaining</div>
+      </div>
+      <div class="stat-card green">
+        <div class="label">Annual</div>
+        <div class="value" style="font-size:1.8rem;">14</div>
+        <div class="sub">days remaining</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ Leave application submitted successfully!</div>
+
+<script>
+  function submitLeave() {
+    const fields = ['empId','empName','dept','leaveType','fromDate','toDate','reason'];
+    let valid = true;
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) {
+        el.style.borderColor = 'var(--danger)';
+        valid = false;
+      } else {
+        el.style.borderColor = '';
+      }
+    });
+    if (!valid) { alert('Please fill in all fields.'); return; }
+
+    // Show toast
+    const toast = document.getElementById('toast');
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+
+    // Optional: redirect to history
+    setTimeout(() => { window.location.href = 'leave-history.html'; }, 1500);
+  }
+
+  function resetForm() {
+    ['empId','empName','dept','leaveType','fromDate','toDate','reason'].forEach(id => {
+      document.getElementById(id).value = '';
+      document.getElementById(id).style.borderColor = '';
+    });
+  }
+
+  // Set min date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('fromDate').min = today;
+  document.getElementById('toDate').min = today;
+
+  // Auto-adjust toDate min when fromDate changes
+  document.getElementById('fromDate').addEventListener('change', function() {
+    document.getElementById('toDate').min = this.value;
+  });
+</script>
+
+</body>
+</html>

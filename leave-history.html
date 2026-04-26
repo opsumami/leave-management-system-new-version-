@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Leave History – Leave Management</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">Leave<span>MS</span></div>
+  <nav>
+    <a href="index.html"><span class="icon">📊</span> Dashboard</a>
+    <a href="apply-leave.html"><span class="icon">📝</span> Apply Leave</a>
+    <a href="leave-history.html" class="active"><span class="icon">📋</span> Leave History</a>
+    <a href="approval.html"><span class="icon">✅</span> Approvals</a>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="page-header">
+    <h1>Leave History</h1>
+    <p>Complete record of all leave requests and their statuses</p>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="card" style="padding: 18px 24px;">
+    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+      <div class="form-group" style="flex:1; min-width:160px;">
+        <label>Filter by Status</label>
+        <select id="filterStatus" onchange="filterTable()">
+          <option value="">All Statuses</option>
+          <option>Pending</option>
+          <option>Approved</option>
+          <option>Rejected</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:1; min-width:160px;">
+        <label>Filter by Leave Type</label>
+        <select id="filterType" onchange="filterTable()">
+          <option value="">All Types</option>
+          <option>Casual</option>
+          <option>Sick</option>
+          <option>Annual</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:1; min-width:160px;">
+        <label>Search Employee</label>
+        <input type="text" id="filterSearch" placeholder="Name..." oninput="filterTable()" />
+      </div>
+      <button class="btn btn-ghost" onclick="clearFilters()">✖ Clear</button>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card">
+    <div class="card-title">📋 All Leave Records <span id="countBadge" style="font-size:0.8rem;font-weight:500;color:var(--muted);margin-left:8px;"></span></div>
+    <div class="table-wrap">
+      <table id="leaveTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Employee Name</th>
+            <th>Employee ID</th>
+            <th>Department</th>
+            <th>Leave Type</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Days</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const leaveData = [
+    { name: 'Ali Hassan',    id: 'EMP-101', dept: 'Engineering', type: 'Casual',  from: '2025-04-01', to: '2025-04-03', status: 'Approved' },
+    { name: 'Sara Khan',     id: 'EMP-204', dept: 'HR',          type: 'Sick',    from: '2025-04-10', to: '2025-04-11', status: 'Pending'  },
+    { name: 'Usman Raza',    id: 'EMP-317', dept: 'Finance',     type: 'Annual',  from: '2025-04-15', to: '2025-04-22', status: 'Pending'  },
+    { name: 'Ayesha Noor',   id: 'EMP-089', dept: 'Marketing',   type: 'Casual',  from: '2025-03-28', to: '2025-03-28', status: 'Rejected' },
+    { name: 'Bilal Ahmed',   id: 'EMP-412', dept: 'Engineering', type: 'Sick',    from: '2025-04-20', to: '2025-04-21', status: 'Approved' },
+    { name: 'Zara Malik',    id: 'EMP-155', dept: 'Operations',  type: 'Annual',  from: '2025-05-01', to: '2025-05-10', status: 'Pending'  },
+    { name: 'Hammad Tariq',  id: 'EMP-298', dept: 'Sales',       type: 'Casual',  from: '2025-04-08', to: '2025-04-08', status: 'Approved' },
+    { name: 'Nadia Iqbal',   id: 'EMP-543', dept: 'Finance',     type: 'Sick',    from: '2025-03-15', to: '2025-03-17', status: 'Approved' },
+    { name: 'Faisal Sheikh', id: 'EMP-677', dept: 'Engineering', type: 'Annual',  from: '2025-06-01', to: '2025-06-14', status: 'Pending'  },
+    { name: 'Rabia Asif',    id: 'EMP-034', dept: 'HR',          type: 'Casual',  from: '2025-04-25', to: '2025-04-25', status: 'Rejected' },
+  ];
+
+  function daysBetween(a, b) {
+    const d1 = new Date(a), d2 = new Date(b);
+    return Math.max(1, Math.round((d2 - d1) / (1000*60*60*24)) + 1);
+  }
+
+  function formatDate(d) {
+    return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  function badgeClass(s) {
+    return s === 'Approved' ? 'badge-approved' : s === 'Rejected' ? 'badge-rejected' : 'badge-pending';
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    document.getElementById('countBadge').textContent = `(${data.length} records)`;
+    data.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td>${r.name}</td>
+        <td style="color:var(--muted)">${r.id}</td>
+        <td>${r.dept}</td>
+        <td>${r.type}</td>
+        <td>${formatDate(r.from)}</td>
+        <td>${formatDate(r.to)}</td>
+        <td>${daysBetween(r.from, r.to)}</td>
+        <td><span class="badge ${badgeClass(r.status)}">${r.status}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function filterTable() {
+    const status = document.getElementById('filterStatus').value;
+    const type   = document.getElementById('filterType').value;
+    const search = document.getElementById('filterSearch').value.toLowerCase();
+    const filtered = leaveData.filter(r =>
+      (!status || r.status === status) &&
+      (!type   || r.type === type) &&
+      (!search || r.name.toLowerCase().includes(search))
+    );
+    renderTable(filtered);
+  }
+
+  function clearFilters() {
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterType').value = '';
+    document.getElementById('filterSearch').value = '';
+    renderTable(leaveData);
+  }
+
+  renderTable(leaveData);
+</script>
+
+</body>
+</html>

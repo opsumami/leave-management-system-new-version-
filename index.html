@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard – Leave Management</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">Leave<span>MS</span></div>
+  <nav>
+    <a href="index.html" class="active"><span class="icon">📊</span> Dashboard</a>
+    <a href="apply-leave.html"><span class="icon">📝</span> Apply Leave</a>
+    <a href="leave-history.html"><span class="icon">📋</span> Leave History</a>
+    <a href="approval.html"><span class="icon">✅</span> Approvals</a>
+  </nav>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Overview of all leave activity across the organization</p>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card blue">
+      <div class="label">Total Employees</div>
+      <div class="value">124</div>
+      <div class="sub">Active staff members</div>
+    </div>
+    <div class="stat-card cyan">
+      <div class="label">Leaves Applied</div>
+      <div class="value">47</div>
+      <div class="sub">This month</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="label">Pending Approvals</div>
+      <div class="value">12</div>
+      <div class="sub">Awaiting review</div>
+    </div>
+    <div class="stat-card green">
+      <div class="label">Approved Leaves</div>
+      <div class="value">31</div>
+      <div class="sub">Processed this month</div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="chart-row">
+
+    <!-- BAR CHART: Leaves per month -->
+    <div class="card">
+      <div class="card-title">📈 Leaves Per Month</div>
+      <div class="bar-chart" id="barChart"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap" id="barLabels"></div>
+    </div>
+
+    <!-- DONUT CHART: Leave type distribution -->
+    <div class="card">
+      <div class="card-title">🍩 Leave Type Distribution</div>
+      <div class="donut-wrap">
+        <svg class="donut" width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="45" fill="none" stroke="#1a2235" stroke-width="20"/>
+          <!-- Casual: 40% -->
+          <circle cx="60" cy="60" r="45" fill="none" stroke="#3b82f6" stroke-width="20"
+            stroke-dasharray="113 169" stroke-dashoffset="0"/>
+          <!-- Sick: 35% -->
+          <circle cx="60" cy="60" r="45" fill="none" stroke="#06b6d4" stroke-width="20"
+            stroke-dasharray="99 183" stroke-dashoffset="-113"/>
+          <!-- Annual: 25% -->
+          <circle cx="60" cy="60" r="45" fill="none" stroke="#10b981" stroke-width="20"
+            stroke-dasharray="70 212" stroke-dashoffset="-212"/>
+        </svg>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div> Casual (40%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#06b6d4"></div> Sick (35%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Annual (25%)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT ACTIVITY TABLE -->
+  <div class="card">
+    <div class="card-title">🕐 Recent Leave Requests</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Department</th>
+            <th>Leave Type</th>
+            <th>Dates</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Ali Hassan</td><td>Engineering</td><td>Casual</td><td>Apr 20 – Apr 22</td><td><span class="badge badge-approved">Approved</span></td></tr>
+          <tr><td>Sara Khan</td><td>HR</td><td>Sick</td><td>Apr 23 – Apr 24</td><td><span class="badge badge-pending">Pending</span></td></tr>
+          <tr><td>Usman Raza</td><td>Finance</td><td>Annual</td><td>Apr 25 – May 2</td><td><span class="badge badge-pending">Pending</span></td></tr>
+          <tr><td>Ayesha Noor</td><td>Marketing</td><td>Casual</td><td>Apr 18 – Apr 18</td><td><span class="badge badge-rejected">Rejected</span></td></tr>
+          <tr><td>Bilal Ahmed</td><td>Engineering</td><td>Sick</td><td>Apr 26 – Apr 27</td><td><span class="badge badge-approved">Approved</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // Bar chart data
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const values = [8, 12, 7, 15, 10, 18, 6, 14, 9, 11, 5, 13];
+  const max = Math.max(...values);
+  const chart = document.getElementById('barChart');
+  const labels = document.getElementById('barLabels');
+
+  months.forEach((m, i) => {
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = (values[i] / max * 100) + 'px';
+    bar.style.background = i === 3 ? 'var(--accent2)' : 'var(--accent)';
+    bar.title = `${m}: ${values[i]} leaves`;
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-label';
+    lbl.textContent = m;
+    col.appendChild(bar);
+    col.appendChild(lbl);
+    chart.appendChild(col);
+  });
+</script>
+
+</body>
+</html>
